@@ -55,7 +55,6 @@ export default {
   'page.route.input.placeholder.parameterNameHttpHeader': '请求头名称，例如：HOST',
   'page.route.input.placeholder.parameterNameRequestParameter': '参数名称，例如：id',
   'page.route.input.placeholder.redirectCustom': '例如：/foo/index.html',
-  'page.route.input.placeholder.requestUrl': '请输入合法的请求地址',
   'page.route.input.placeholder.paramKey': '参数名称',
   'page.route.input.placeholder.paramType': '参数类型',
   'page.route.input.placeholder.paramValue': '参数值',
@@ -105,8 +104,10 @@ export default {
   'page.route.panelSection.title.requestOverride': '请求改写',
   'page.route.panelSection.title.requestConfigBasicDefine': '匹配条件',
   'page.route.panelSection.title.advancedMatchRule': '高级匹配条件',
-  'page.route.PanelSection.title.defineRequestParams': '请求参数定义',
+  'page.route.PanelSection.title.defineRequestParams': '定义请求参数',
   'page.route.PanelSection.title.responseResult': '请求响应结果',
+  'page.route.PanelSection.title.chooseRequestAddress': '选择请求地址',
+  'page.route.PanelSection.title.enterRequestPath': '输入请求路径',
 
   'page.route.httpAction': '行为',
   'page.route.httpOverrideOrCreate': '重写/创建',
@@ -142,13 +143,16 @@ export default {
   'page.route.button.selectFile': '请选择上传文件',
   'page.route.list': '路由列表',
   'page.route.tooltip.pluginOrchOnlySuportChrome': '插件编排仅支持 Chrome 浏览器。',
-  'page.route.tooltip.pluginOrchWithoutProxyRewrite': '当步骤一中 配置了 请求改写时，不可使用插件编排模式。',
-  'page.route.tooltip.pluginOrchWithoutRedirect': '当步骤一中 重定向 选择为 启用 HTTPS 时，不可使用插件编排模式。',
+  'page.route.tooltip.pluginOrchWithoutProxyRewrite':
+    '当步骤一中 配置了 请求改写时，不可使用插件编排模式。',
+  'page.route.tooltip.pluginOrchWithoutRedirect':
+    '当步骤一中 重定向 选择为 启用 HTTPS 时，不可使用插件编排模式。',
 
   'page.route.tabs.normalMode': '普通模式',
   'page.route.tabs.orchestration': '编排模式',
 
-  'page.route.list.description': '路由（Route）是请求的入口点，它定义了客户端请求与服务之间的匹配规则。路由可以与服务（Service）、上游（Upstream）关联，一个服务可对应一组路由，一个路由可以对应一个上游对象（一组后端服务节点），因此，每个匹配到路由的请求将被网关代理到路由绑定的上游服务中。',
+  'page.route.list.description':
+    '路由（Route）是请求的入口点，它定义了客户端请求与服务之间的匹配规则。路由可以与服务（Service）、上游（Upstream）关联，一个服务可对应一组路由，一个路由可以对应一个上游对象（一组后端服务节点），因此，每个匹配到路由的请求将被网关代理到路由绑定的上游服务中。',
 
   'page.route.configuration.name.rules.required.description': '请输入路由名称',
   'page.route.configuration.name.placeholder': '请输入路由名称',
@@ -159,6 +163,7 @@ export default {
   'page.route.configuration.normal-labels.tooltip': '为路由增加自定义标签，可用于路由分组。',
 
   'page.route.configuration.path.rules.required.description': '请输入有效的 HTTP 请求路径',
+  'page.route.debug.path.rules.required.description': '请输入有效的 HTTP 请求路径，以 / 开头',
   'page.route.configuration.path.placeholder': '请输入 HTTP 请求路径',
   'page.route.configuration.remote_addrs.placeholder': '请输入客户端地址',
   'page.route.configuration.host.placeholder': '请输入 HTTP 请求域名',
@@ -172,7 +177,8 @@ export default {
   'page.route.advanced-match.operator.sample.~~': '请输入正则表达式，示例：[a-z]+',
   'page.route.fields.service_id.invalid': '请检查路由绑定的服务',
   'page.route.fields.service_id.without-upstream': '如果不绑定服务，则必须设置上游服务（步骤 2）',
-  'page.route.advanced-match.tooltip': '支持通过请求头，请求参数、Cookie 进行路由匹配，可应用于灰度发布，蓝绿测试等场景。',
+  'page.route.advanced-match.tooltip':
+    '支持通过请求头，请求参数、Cookie 进行路由匹配，可应用于灰度发布，蓝绿测试等场景。',
 
   'page.route.fields.custom.redirectOption.tooltip': '在此配置 redirect 插件',
   'page.route.fields.service_id.tooltip': '绑定服务（Service）对象，以便复用其中的配置。',

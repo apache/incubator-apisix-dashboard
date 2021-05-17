@@ -124,3 +124,7 @@ export const importRoutes = (formData: FormData) => {
     requestType: 'form',
   });
 };
+
+export const getDebugTarget = () => {
+  return request('/tool/gateways');
+};

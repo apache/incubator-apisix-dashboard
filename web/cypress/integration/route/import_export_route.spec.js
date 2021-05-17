@@ -149,13 +149,11 @@ context('import and export routes', () => {
     for (let i = 0; i < 2; i += 1) {
       cy.contains(data[`route_name_${i}`]).siblings().contains('More').click();
       cy.contains('Delete').click();
-      cy.get(selector.deleteAlert)
-        .should('be.visible')
-        .within(() => {
-          cy.contains('OK').click();
-        });
+      cy.get(selector.deleteAlert).should('be.visible').within(() => {
+        cy.contains('OK').click();
+      });
       cy.get(selector.notification).should('contain', data.deleteRouteSuccess);
-      cy.get(selector.notificationCloseIcon).click().should('not.exist');
+      cy.get(selector.notificationCloseIcon).click({multiple: true}).should('not.exist');
       cy.reload();
     }
   });
@@ -180,10 +178,10 @@ context('import and export routes', () => {
         cy.get(selector.notificationDesc).should('contain', data.importErrorMsg);
         // close modal
         cy.contains(componentLocaleUS['component.global.cancel']).click();
-        cy.get(selector.notificationCloseIcon).click();
+        cy.get(selector.notificationCloseIcon).click({multiple: true});
       } else if (file !== 'import-error.txt') {
         cy.get(selector.notification).should('contain', 'Success');
-        cy.get(selector.notificationCloseIcon).click().should('not.exist');
+        cy.get(selector.notificationCloseIcon).click({multiple: true}).should('not.exist');
         // delete route just imported
         cy.reload();
         cy.contains('More').click();
@@ -195,7 +193,7 @@ context('import and export routes', () => {
           });
         // show delete successfully notification
         cy.get(selector.notification).should('contain', data.deleteRouteSuccess);
-        cy.get(selector.notificationCloseIcon).click();
+        cy.get(selector.notificationCloseIcon).click({multiple: true});
       }
     });
   });

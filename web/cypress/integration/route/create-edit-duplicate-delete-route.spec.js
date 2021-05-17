@@ -252,13 +252,11 @@ context('Create and Delete Route', () => {
       cy.contains('Search').click();
       cy.contains(routeName).siblings().contains('More').click();
       cy.contains('Delete').click();
-      cy.get(selector.deleteAlert)
-        .should('be.visible')
-        .within(() => {
-          cy.contains('OK').click();
-        });
+      cy.get(selector.deleteAlert).should('be.visible').within(() => {
+        cy.contains('OK').click();
+      });
       cy.get(selector.notification).should('contain', data.deleteRouteSuccess);
-      cy.get(selector.notificationCloseIcon).click();
+      cy.get(selector.notificationCloseIcon).click({multiple: true});
     });
   });
 });
