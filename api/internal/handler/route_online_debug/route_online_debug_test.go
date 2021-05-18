@@ -19,12 +19,17 @@ package route_online_debug
 
 import (
 	"compress/gzip"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"testing"
+
 	"github.com/shiningrush/droplet"
 	"github.com/shiningrush/droplet/data"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+
+	"github.com/apisix/manager-api/internal/conf"
 )
 
 var TestResponse = "test"
@@ -42,24 +47,36 @@ func mockServer() *httptest.Server {
 
 func TestHTTPProtocolSupport_RequestForwarding(t *testing.T) {
 	server := mockServer()
+	parsedURL, err := url.ParseRequestURI(server.URL)
+	assert.Nil(t, err)
+	conf.Gateways = append(conf.Gateways, parsedURL.Host)
 	defer server.Close()
 	var cases = []struct {
 		Desc   string
 		Input  *DebugOnlineInput
 		Result interface{}
+		RetErr error
 	}{
 		{
 			Desc: "unsupported method",
 			Input: &DebugOnlineInput{
-				URL:    server.URL,
-				Method: "Lock",
+				URL:          server.URL,
+				Method:       "Lock",
+				HeaderParams: "{}",
 			},
 			Result: &data.SpecCodeResponse{StatusCode: http.StatusBadRequest},
+			RetErr: errors.New("the method is not allowed for debugging"),
 		},
 		{
-			Desc:   "wrong url",
-			Input:  &DebugOnlineInput{URL: "grpc://localhost"},
+			Desc: "wrong url",
+			Input: &DebugOnlineInput{
+				URL:             "grpc://127.0.0.1:9080",
+				Method:          "Get",
+				HeaderParams:    "{}",
+				RequestProtocol: "grpc",
+			},
 			Result: &data.SpecCodeResponse{StatusCode: http.StatusBadRequest},
+			RetErr: errors.New(`protocol unsupported grpc`),
 		},
 		{
 			Desc: "not specify the accept-encoding request header explicitly",
@@ -79,13 +96,35 @@ func TestHTTPProtocolSupport_RequestForwarding(t *testing.T) {
 			},
 			Result: TestResponse,
 		},
+		{
+			Desc: "not allowed host",
+			Input: &DebugOnlineInput{
+				URL:          "http://127.0.0.1:8080",
+				Method:       "Get",
+				HeaderParams: "{}",
+			},
+			Result: &data.SpecCodeResponse{StatusCode: http.StatusBadRequest},
+			RetErr: errors.New(`invalid debugging url: doesn't match any host of APISIX gateways`),
+		},
+		{
+			Desc: "not allowed path",
+			Input: &DebugOnlineInput{
+				URL:          "http://127.0.0.1:9080/apisix/admin/routes",
+				Method:       "Get",
+				HeaderParams: "{}",
+			},
+			Result: &data.SpecCodeResponse{StatusCode: http.StatusBadRequest},
+			RetErr: errors.New(`invalid debugging url: the path is forbidden for debugging`),
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.Desc, func(t *testing.T) {
-			proto := &HTTPProtocolSupport{}
-			context := droplet.NewContext()
-			context.SetInput(c.Input)
-			result, _ := proto.RequestForwarding(context)
+			ctx := droplet.NewContext()
+			ctx.SetInput(c.Input)
+			h := Handler{}
+			result, err := h.DebugRequestForwarding(ctx)
+			assert.Equal(t, c.RetErr, err)
+
 			switch result.(type) {
 			case *Result:
 				assert.Equal(t, result.(*Result).Data, c.Result.(string))
@@ -94,4 +133,23 @@ func TestHTTPProtocolSupport_RequestForwarding(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCheckHost(t *testing.T) {
+	err := checkHost("127.0.0.1:9080")
+	assert.Nil(t, err)
+
+	err = checkHost("github.com")
+	assert.Equal(t, err, errors.New("doesn't match any host of APISIX gateways"))
+}
+
+func TestCheckPath(t *testing.T) {
+	err := checkPath("/books/1")
+	assert.Nil(t, err)
+
+	err = checkPath("/test/apisix")
+	assert.Nil(t, err)
+
+	err = checkPath("/apisix/admin/routes")
+	assert.Equal(t, err, errors.New("the path is forbidden for debugging"))
 }
