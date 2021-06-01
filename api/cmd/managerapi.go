@@ -19,6 +19,7 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
+	"embed"
 	"fmt"
 	"net"
 	"net/http"
@@ -47,6 +48,12 @@ var (
 	GitHash     string
 	service     *Service
 )
+
+//go:embed html
+var staticFiles embed.FS
+
+//go:embed dag-to-lua
+var luaScripts embed.FS
 
 func printInfo() {
 	fmt.Fprint(os.Stdout, "The manager-api is running successfully!\n\n")
@@ -103,6 +110,9 @@ func manageAPI() error {
 		log.Errorf("failed to write pid: %s", err)
 		return err
 	}
+	if err := utils.WriteLuaScripts(conf.WorkDir, luaScripts); err != nil {
+		log.Errorf("error while writing scripts: %s", err)
+	}
 	utils.AppendToClosers(func() error {
 		if err := os.Remove(conf.PIDPath); err != nil {
 			log.Errorf("failed to remove pid path: %s", err)
@@ -143,7 +153,7 @@ func manageAPI() error {
 	errsig := make(chan error, 1)
 
 	// routes
-	r := internal.SetUpRouter()
+	r := internal.SetUpRouter(staticFiles)
 	addr := net.JoinHostPort(conf.ServerHost, strconv.Itoa(conf.ServerPort))
 	server = &http.Server{
 		Addr:         addr,

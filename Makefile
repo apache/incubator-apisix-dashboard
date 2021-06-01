@@ -24,6 +24,11 @@ VERSION ?= latest
 RELEASE_SRC = apache-apisix-dashboard-${VERSION}-src
 
 export GO111MODULE=on
+GO_MAJOR = $(shell go version | cut -c 14-14)
+GO_MINOR = $(shell go version | cut -c 16-17)
+
+REQUIRED_MIN_GO_MAJOR = 1
+REQUIRED_MIN_GO_MINOR = 16
 
 ### help:		Show Makefile rules
 .PHONY: help
@@ -36,8 +41,12 @@ help:
 ### build:		Build the Apache APISIX Dashboard, including web and manager-api
 .PHONY: build
 build: web-default api-default
-	api/build.sh && cd ./web && export CYPRESS_INSTALL_BINARY=0  && yarn install && yarn build  && mkdir -p ../output/logs
+	cd ./web && export CYPRESS_INSTALL_BINARY=0  && yarn install && yarn build && cd .. && cp -r output/html api/cmd && api/build.sh &&  mkdir -p output/logs
 
+### api-build:	Build the Apache APISIX Dashboard, only manager-api
+.PHONY: api-build
+api-build: api-default
+	rm -rf api/cmd/html && git checkout api/cmd/html/ && api/build.sh && mkdir -p output/logs
 
 .PHONY: web-default
 web-default:
@@ -50,10 +59,14 @@ endif
 .PHONY: api-default
 api-default:
 ifeq ("$(wildcard $(GO_EXEC))", "")
-	@echo "ERROR: Need to install golang 1.13+ first"
+	@echo "ERROR: Need to install golang 1.16+ first"
 	exit 1
 endif
-
+	@if [ "${GO_MAJOR}" -lt "${REQUIRED_MIN_GO_MAJOR}" ] || \
+	([ "${GO_MAJOR}" -eq "${REQUIRED_MIN_GO_MAJOR}"  ] && [ "${GO_MINOR}" -lt "${REQUIRED_MIN_GO_MINOR}" ]) ; then \
+		echo "ERROR: Need to install golang 1.16+ first"; \
+		exit 1; \
+	fi
 
 ### dag-lib:            Download the dag-lib
 .PHONY: dag-lib

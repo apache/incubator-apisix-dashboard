@@ -14,41 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package utils
 
 import (
-	"fmt"
-	"io/ioutil"
+	"embed"
+	"io/fs"
 	"os"
-	"strconv"
+	"path/filepath"
 )
 
-// WritePID write pid to the given file path.
-func WritePID(filepath string) error {
-	if _, err := os.Stat(filepath); err == nil {
-		return fmt.Errorf("instance of Manager API already running: a pid file exists in %s", filepath)
-	}
-	pid := os.Getpid()
-	f, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
+// WriteLuaScripts writes embedded lua scripts.
+func WriteLuaScripts(workDir string, luaScripts embed.FS) error {
+	return fs.WalkDir(luaScripts, "dag-to-lua", func(path string, d fs.DirEntry, _ error) error {
+		path = filepath.Join(workDir, path)
+		if d.IsDir() {
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+				return os.Mkdir(path, 0777)
+			}
+			return nil
+		}
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		scriptBytes, err := luaScripts.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		_, err = f.Write(scriptBytes)
 		return err
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(strconv.Itoa(pid))
-	return err
-}
-
-// ReadPID reads the pid from the given file path.
-func ReadPID(filepath string) (int, error) {
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return -1, err
-	}
-	pid, err := strconv.Atoi(string(data))
-	if err != nil {
-		return -1, fmt.Errorf("invalid pid: %s", err)
-	}
-	return pid, nil
+	})
 }
